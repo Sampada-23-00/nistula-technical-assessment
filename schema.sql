@@ -81,3 +81,17 @@ CREATE INDEX IF NOT EXISTS idx_conversations_booking    ON conversations (bookin
 --    edited = agent modified it before sending, auto_sent = went out as-is.
 -- 5. confidence_score and action provide a full audit trail for every
 --    routing decision, supporting human-review workflows and reporting.
+
+
+-- Hardest design decision:
+-- Guest identity resolution across channels was the most difficult call.
+-- A guest named "Rahul Sharma" on WhatsApp and "Rahul Sharma" on Airbnb
+-- may or may not be the same person — there is no shared ID across platforms.
+-- I chose to create a guests table with a generated UUID and store
+-- guest_name + primary_channel, accepting that deduplication is a manual
+-- or future ML problem rather than trying to solve it at the schema level
+-- with fragile name-matching logic. The alternative — merging guest records
+-- automatically by name — risks conflating different people and corrupting
+-- conversation history, which is far more damaging than having duplicate
+-- guest rows. This decision keeps the schema correct by default and leaves
+-- identity resolution to a deliberate product decision later.
